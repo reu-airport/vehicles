@@ -12,5 +12,7 @@ namespace AirportVehicles
 
         [JsonPropertyName("vehicleType")]
         public VehicleType Type { get; set; }
+
+        public Route Route { get; }
     }
 }

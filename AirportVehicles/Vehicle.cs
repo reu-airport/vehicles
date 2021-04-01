@@ -8,11 +8,11 @@ namespace AirportVehicles
     class Vehicle
     {
         [JsonPropertyName("vehicleId")]
-        public Guid Id { get; set; }
+        public Guid Id { get; } = Guid.NewGuid();
 
         [JsonPropertyName("vehicleType")]
         public VehicleType Type { get; set; }
 
-        public Route Route { get; }
+        public Route Route { get; set; }
     }
 }

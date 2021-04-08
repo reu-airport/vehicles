@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RabbitMQ.Client;
+using System;
 
 namespace AirportVehicles
 {
@@ -6,7 +7,17 @@ namespace AirportVehicles
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            var connFactory = new ConnectionFactory
+            {
+                HostName = "localhost"
+            };
+            var connection = connFactory.CreateConnection();
+            var channel = connection.CreateModel();
+
+            var vehiclesComponent = new VehiclesComponent(channel);
+
+            Console.WriteLine("Press enter to exit");
+            Console.ReadLine();
         }
     }
 }

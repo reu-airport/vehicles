@@ -4,7 +4,7 @@ using System.Text;
 
 namespace AirportVehicles.DTOs
 {
-    class PassengersRequest
+    public class PassengersRequest : VehicleDTO
     {
         public int GateNum { get; set; }
 
@@ -12,6 +12,6 @@ namespace AirportVehicles.DTOs
 
         public bool IsVip { get; set; }
 
-        public int Count { get; set; }
+        public int Count { get; }
     }
 }

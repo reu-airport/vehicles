@@ -4,10 +4,8 @@ using System.Text;
 
 namespace AirportVehicles.DTOs
 {
-    public class VehicleMovement
-    {
-        public Guid VehicleId { get; set; }
-
+    public class VehicleMovement : VehicleDTO
+    { 
         public VehicleType Type { get; set; }
 
         public int VertexFrom { get; set; }

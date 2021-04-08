@@ -5,9 +5,9 @@ using System.Text.Json.Serialization;
 
 namespace AirportVehicles.DTOs
 {
-    class Passengers
+    public class Passengers : VehicleDTO
     {
-        public Guid FlightID { get; } = Guid.NewGuid();
+        public Guid FlightID { get; set; }
 
         public bool IsVip { get; set; }
 

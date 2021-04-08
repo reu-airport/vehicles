@@ -4,7 +4,7 @@ using System.Text;
 
 namespace AirportVehicles.DTOs
 {
-    class Baggage
+    public class Baggage : VehicleDTO
     {
         public Guid FlightID { get; set; }
 

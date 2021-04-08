@@ -4,7 +4,6 @@ using System.Text;
 
 namespace AirportVehicles.DTOs
 {
-
     public class VehicleRequest
     {
         public VehicleType VehicleType { get; set; }

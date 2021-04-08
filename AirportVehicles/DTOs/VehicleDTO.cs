@@ -4,8 +4,8 @@ using System.Text;
 
 namespace AirportVehicles.DTOs
 {
-    public class Passenger
+    public class VehicleDTO
     {
-        public Guid Id { get; set; }
+        public Guid VehicleId { get; set; }
     }
 }

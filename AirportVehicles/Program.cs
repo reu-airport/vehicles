@@ -11,7 +11,7 @@ namespace AirportVehicles
         {
             var connFactory = new ConnectionFactory
             {
-                HostName = "localhost"
+                HostName = "206.189.60.128"
             };
             var connection = connFactory.CreateConnection();
             var channel = connection.CreateModel();

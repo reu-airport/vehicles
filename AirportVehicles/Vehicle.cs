@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -16,13 +17,13 @@ namespace AirportVehicles
 
         public int SiteNum { get; set; }
 
-        private IEnumerable<VehicleAction> _actionsSequence;
+        private VehicleAction[] _actionsSequence;
         public IEnumerable<VehicleAction> ActionsSequence
         {
             get => _actionsSequence;
             set
             {
-                _actionsSequence = value;
+                _actionsSequence = value.ToArray();
                 foreach (var action in _actionsSequence)
                 {
                     action.Vehicle = this;
@@ -30,16 +31,20 @@ namespace AirportVehicles
             }
         }
 
-        // Количество оставшихся запросов для данной машинки на обслуживание борта
-        private int _incompleteRequestsCount = 0;
+        //// Количество оставшихся запросов для данной машинки на обслуживание борта
+        //private int _pendingRequestsCount = 0;
 
-        private AutoResetEvent _waitForRequestHandle = new AutoResetEvent(false);
+        private AutoResetEvent _gotRequestHandle = new AutoResetEvent(false);
 
-        public void AcceptRequestForOperating()
+        private ConcurrentQueue<VehicleRequest> _requests = new ConcurrentQueue<VehicleRequest>();
+
+        public void AcceptRequestForOperating(VehicleRequest request)
         {
-            Interlocked.Increment(ref _incompleteRequestsCount);
-            if (_incompleteRequestsCount >= 1)
-                _waitForRequestHandle.Set();
+            _requests.Enqueue(request);
+            _gotRequestHandle.Set();
+            //Interlocked.Increment(ref _pendingRequestsCount);
+            //if (_pendingRequestsCount >= 1)
+            //    _waitForRequestHandle.Set();
         }
             
 
@@ -48,14 +53,22 @@ namespace AirportVehicles
         {
             while(!ct.IsCancellationRequested)
             {
-                _waitForRequestHandle.WaitOne();
+                _gotRequestHandle.WaitOne();
+                _requests.TryDequeue(out VehicleRequest request);
+                ActionsSequence = ActionsSequenceFactory.Create(Type, request.Direction, SiteNum);
                 foreach (var action in ActionsSequence)
                 {
                     action.Run();
+                    Thread.Sleep(2000);
                 }
-                Interlocked.Decrement(ref _incompleteRequestsCount);
-                if (Volatile.Read(ref _incompleteRequestsCount) == 0)
-                    _waitForRequestHandle.Reset();
+                VehiclesComponent.PublishHandlingEnd(new HandlingEnd { Site = SiteNum });
+                if (!_requests.TryPeek(out _))
+                {
+                    _gotRequestHandle.Reset();
+                }
+                //Interlocked.Decrement(ref _pendingRequestsCount);
+                //if (Volatile.Read(ref _pendingRequestsCount) == 0)
+                //    _waitForRequestHandle.Reset();
             }
         }
     }

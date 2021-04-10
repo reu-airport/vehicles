@@ -64,7 +64,7 @@ namespace AirportVehicles
                 new VehicleMovement
                 {
                     VehicleId = Vehicle.Id,
-                    Type = Vehicle.Type,
+                    VehicleType = Vehicle.Type,
                     VertexFrom = _vertexFrom,
                     VertexTo = _vertexTo,
                     DurationMs = _movementTimeMs
@@ -78,6 +78,7 @@ namespace AirportVehicles
                     VertexFrom = _vertexFrom,
                     VertexTo = _vertexTo,
                 });
+            
         }
     }
 }

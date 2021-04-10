@@ -9,14 +9,16 @@ namespace AirportVehicles
     {
         public static IEnumerable<Vehicle> Vehicles { get; } = new Vehicle[]
         {
-            new Vehicle(
-                new Movement(12, 11),
-                new Movement(11, 2),
-                new Movement(2, 4)
-                )
+            new Vehicle
             {
                 Type = VehicleType.Bus,
                 SiteNum = 1,
+                ActionsSequence = new VehicleAction[]
+                {
+                    new Movement(12, 11),
+                    new Movement(11, 2),
+                    new Movement(2, 4)
+                }
             }
 
             //new Vehicle

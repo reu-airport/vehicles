@@ -1,5 +1,7 @@
 ﻿using RabbitMQ.Client;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AirportVehicles
 {
@@ -14,10 +16,20 @@ namespace AirportVehicles
             var connection = connFactory.CreateConnection();
             var channel = connection.CreateModel();
 
-            var vehiclesComponent = new VehiclesComponent(channel);
+            VehiclesComponent.Initialize(channel, new System.Net.Http.HttpClient());
+
+            var cts = new CancellationTokenSource();
+            var ct = cts.Token;
+            foreach (var vehicle in Garage.Vehicles)
+            {
+                Task.Run(() => vehicle.Run(ct));
+            }
 
             Console.WriteLine("Press enter to exit");
             Console.ReadLine();
+
+            cts.Cancel();
+            channel.Dispose();
         }
     }
 }

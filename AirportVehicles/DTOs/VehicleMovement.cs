@@ -11,5 +11,7 @@ namespace AirportVehicles.DTOs
         public int VertexFrom { get; set; }
 
         public int VertexTo { get; set; }
+
+        public int DurationMs { get; set; }
     }
 }

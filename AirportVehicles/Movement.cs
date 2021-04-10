@@ -23,7 +23,7 @@ namespace AirportVehicles
 
         protected override void MakeRequest()
         {
-            VehiclesComponent?.PublishMovementRequest(
+            VehiclesComponent.PublishMovementRequest(
                 new MovementRequest
                 {
                     VehicleId = Vehicle?.Id ?? Guid.Empty,
@@ -32,24 +32,46 @@ namespace AirportVehicles
                 });
         }
 
-        protected override void Do(object arg)
+        private object locker = new object();
+        public override void AcceptResponse(object response)
         {
-            var response = (MovementPermission)arg;
+            MovementPermission currentPermission;
+            lock(locker)
+            {
+                currentPermission = (MovementPermission)this.response;
+                if (currentPermission == null || !currentPermission.IsPermitted)
+                {
+                    this.response = response;
+                }
+            }
+            waitForResponseHandle.Set();
+            
+        }
+
+        protected override void Resume(object arg)
+        {
+            var response = (MovementPermission)this.response;
             while(!response.IsPermitted)
             {
+                waitForResponseHandle.Reset();
                 Thread.Sleep(_movementRequestPollIntervalMs);
-                MakeRequest();
+                Initiate();
+                waitForResponseHandle.WaitOne();
+                response = (MovementPermission)this.response;
             }
-            VehiclesComponent?.PublishVehicleMovement(
+            
+            VehiclesComponent.PublishVehicleMovement(
                 new VehicleMovement
                 {
                     VehicleId = Vehicle.Id,
                     Type = Vehicle.Type,
                     VertexFrom = _vertexFrom,
-                    VertexTo = _vertexTo
+                    VertexTo = _vertexTo,
+                    DurationMs = _movementTimeMs
+
                 });
             Thread.Sleep(_movementTimeMs);
-            VehiclesComponent?.PublishMovementEnd(
+            VehiclesComponent.PublishMovementEnd(
                 new MovementEnd 
                 { 
                     VehicleId = Vehicle.Id,

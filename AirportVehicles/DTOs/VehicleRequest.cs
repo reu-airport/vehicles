@@ -8,6 +8,8 @@ namespace AirportVehicles.DTOs
     {
         public VehicleType VehicleType { get; set; }
 
+        public FlightDirection Direction { get; set; }
+
         public int Site { get; set; }
     }
 }

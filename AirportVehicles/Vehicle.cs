@@ -4,58 +4,59 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json.Serialization;
+using System.Threading;
 
 namespace AirportVehicles
 {
     class Vehicle
     {
-        [JsonPropertyName("vehicleId")]
         public Guid Id { get; } = Guid.NewGuid();
 
-        [JsonPropertyName("vehicleType")]
         public VehicleType Type { get; set; }
 
-        public Route Route { get; set; }
-
-        public bool IsIdle { get; set; } = true;
-    
         public int SiteNum { get; set; }
 
-        public LinkedList<VehicleAction> ActionsSequence { get; }
-        
-        private LinkedListNode<VehicleAction> CurrentActionNode { get; set; }
-        public VehicleAction CurrentAction => CurrentActionNode.Value;
-
-        public Vehicle() { }
-
-        public Vehicle(params VehicleAction[] actions)
+        private IEnumerable<VehicleAction> _actionsSequence;
+        public IEnumerable<VehicleAction> ActionsSequence
         {
-            ActionsSequence = new LinkedList<VehicleAction>(actions);
-            foreach (var action in ActionsSequence)
+            get => _actionsSequence;
+            set
             {
-                action.Vehicle = this;
-                action.Done += (s, e) => { 
-                    CurrentActionNode = CurrentActionNode.Next;
-                    CurrentAction.Initiate();
-                };
+                _actionsSequence = value;
+                foreach (var action in _actionsSequence)
+                {
+                    action.Vehicle = this;
+                }
             }
         }
 
         // Количество оставшихся запросов для данной машинки на обслуживание борта
-        private int _pendingRequestsForOperatingCount = 0;
+        private int _incompleteRequestsCount = 0;
+
+        private AutoResetEvent _waitForRequestHandle = new AutoResetEvent(false);
 
         public void AcceptRequestForOperating()
         {
-            if (IsIdle)
-                StartOperating();
-            else
-                _pendingRequestsForOperatingCount++;
+            Interlocked.Increment(ref _incompleteRequestsCount);
+            if (_incompleteRequestsCount >= 1)
+                _waitForRequestHandle.Set();
         }
+            
 
-        private void StartOperating()
+
+        public void Run(CancellationToken ct)
         {
-            CurrentActionNode = ActionsSequence.First;
-            CurrentAction.Initiate();
+            while(!ct.IsCancellationRequested)
+            {
+                _waitForRequestHandle.WaitOne();
+                foreach (var action in ActionsSequence)
+                {
+                    action.Run();
+                }
+                Interlocked.Decrement(ref _incompleteRequestsCount);
+                if (Volatile.Read(ref _incompleteRequestsCount) == 0)
+                    _waitForRequestHandle.Reset();
+            }
         }
     }
 }

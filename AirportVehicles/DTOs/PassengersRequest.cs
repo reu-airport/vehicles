@@ -11,7 +11,5 @@ namespace AirportVehicles.DTOs
         public Guid FlightID { get; set; }
 
         public bool IsVip { get; set; }
-
-        public int Count { get; }
     }
 }

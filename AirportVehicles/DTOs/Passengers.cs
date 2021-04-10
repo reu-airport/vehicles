@@ -11,7 +11,6 @@ namespace AirportVehicles.DTOs
 
         public bool IsVip { get; set; }
 
-        [JsonPropertyName("passengers")]
-        public IEnumerable<Passenger> PassengersList { get; set; }
+        public int Count { get; set; }
     }
 }
